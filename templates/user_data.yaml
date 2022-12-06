@@ -26,6 +26,7 @@ runcmd:
   - sysctl -p /etc/sysctl.d/50-tcp_bbr.conf
   - sudo -u ubuntu git clone https://github.com/alecmuffett/eotk.git /home/ubuntu/eotk
   - cd /home/ubuntu/eotk ; sudo -u ubuntu ./opt.d/build-ubuntu-20.04.sh
+  - /bin/bash /root/configure.sh
 
 write_files:
   - content: ${configure_script}
