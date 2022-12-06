@@ -1,0 +1,32 @@
+---
+name: terraform-aws-bc-eotk
+tags:
+  - aws
+  - terraform
+  - ec2
+  - bypass-censorship
+  - tor
+  - onion-services
+  - eotk
+categories:
+  - terraform-modules/supported
+license: BSD2
+gitlab_repo: sr2c/terraform-aws-bc-eotk
+description: |-
+  Terraform module to deploy Bypass Censorship Enterprise Onion Toolkit instances in AWS. Each instance is deployed
+  to a separate availability zone (up to a maximum number of the number of available availability zones within the
+  region).
+references:
+  - name: Bypass Censorship Portal Documentation
+    description: The documentation for the portal software that uses this module.
+    url: https://bypass.censorship.guide/
+  - name: terraform-aws-ec2-conf-log
+    description: The configuration and logging bucket setup that is used in this module.
+    url: https://gitlab.com/sr2c/terraform-aws-ec2-conf-log/
+include:
+  - docs/terraform.md
+  - docs/targets.md
+contributors:
+  - name: irl
+    gitlab: irlxyz
+    gitlab_id: 5895869
