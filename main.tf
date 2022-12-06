@@ -24,7 +24,7 @@ module "instance" {
   instance_profile            = module.conf_log.instance_profile_name
   user_data_base64            = data.cloudinit_config.this.rendered
 
-  context = module.this.context
+  context    = module.this.context
   attributes = [tostring(count.index)]
 }
 
