@@ -25,6 +25,7 @@ module "instance" {
   user_data_base64            = data.cloudinit_config.this.rendered
 
   context = module.this.context
+  attributes = [tostring(count.index)]
 }
 
 resource "aws_s3_object" "configuration_bundle" {
