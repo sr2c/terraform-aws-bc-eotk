@@ -28,9 +28,24 @@
 
 -->
 
-Terraform module to deploy Bypass Censorship Enterprise Onion Toolkit instances in AWS. Each instance is deployed
-to a separate availability zone (up to a maximum number of the number of available availability zones within the
-region).
+Terraform module to deploy Bypass Censorship Enterprise Onion Toolkit instances in AWS.
+
+This module supports creating multiple EC2 instances, each serving the same selection of onion services. Due to the
+way that onion services are published, this provides basic load balancing and failover, although there is no direct
+coordination between the EOTK instances.
+
+Each EC2 instance is deployed to a separate availability zone (up to a maximum number of the number of available
+availability zones within the region).
+
+The nginx reverse proxy server configured by EOTK on each instance will keep access logs and these will be rotated
+hourly. On rotation, the logs will be copied to an S3 bucket for processing by an analytics system.
+
+Rather than replace the EC2 instance on every update, which would be difficult given that EOTK builds tor and
+OpenResty from source as part of the installation process (time consuming), a script is installed to reconfigure
+EOTK every 25 minutes with any updated configuration bundle uploaded to the S3 bucket. The EC2 instances should
+still be considered "disposable" however, as new AMIs will cause EC2 instance replacement.
+
+![terraform-aws-bc-eotk overview](./docs/terraform-aws-bc-eotk.png)
 
 ---
 
@@ -50,6 +65,71 @@ It's 100% Open Source and licensed under the [BSD 2-clause License](LICENSE).
 
 
 
+## Usage
+
+
+**IMPORTANT:** We do not pin modules to versions in our examples because of the
+difficulty of keeping the versions in the documentation in sync with the latest released versions.
+We highly recommend that in your code you pin the version to the exact version you are
+using so that your infrastructure remains stable, and update versions in a
+systematic way so that they do not catch you by surprise.
+
+Also, because of a bug in the Terraform registry ([hashicorp/terraform#21417](https://github.com/hashicorp/terraform/issues/21417)),
+the registry shows many of our inputs as required when in fact they are optional.
+The table below correctly indicates which inputs are required.
+
+
+Before the module may be used, a zip file containing the EOTK configuration and the necessary Onion and TLS keys
+and certificates must be created. This may be done with
+[archive_file](https://registry.terraform.io/providers/hashicorp/archive/latest/docs/data-sources/archive_file) or
+with a tool like [deterministic-zip](https://github.com/timo-reymann/deterministic-zip) if it is acceptable to have
+a non-Terraform solution for that part. No directory structure is used within the zip file, it has only a flat
+structure. To begin, create a file named `sites.conf` that contains your EOTK configuration, for example:
+
+```
+set log_separate 1
+
+set nginx_resolver 127.0.0.53 ipv6=off  # The EC2 instance will have systemd-resolved
+
+set nginx_cache_seconds 60  # Handle bursts, but don't cache anything too long
+set nginx_cache_size 64m
+set nginx_tmpfile_size 8m
+
+set x_from_onion_value 1
+
+foreignmap facebookwkhpilnemxj7asaniu7vnjjbiltxjqhye3mhbshg7kx5tfyd.onion facebook.com
+foreignmap twitter3e4tixl4xyajtrzo62zg5vztmjuricljdp2c5kshju4avyoid.onion twitter.com
+
+set project sites
+
+hardmap systems3hwkxej5nzmo6kvwgx6sik2plqe4w3lsqglr6xhvyi2xlsmqd test.sr2.uk
+```
+
+For each onion service, you'll need to include 4 more files in the zip file:
+
+* `<onion address without .onion>.v3sec.key` - Onion secret key
+* `<onion address without .onion>.v3pub.key` - Onion public key
+* `<first 20 characters of onion address>-v3.pem` - TLS private key (PEM encoded)
+* `<first 20 characters of onion address>-v3.cert` - TLS certificate (PEM encoded)
+
+For the example given above, these files would be named:
+
+* `systems3hwkxej5nzmo6kvwgx6sik2plqe4w3lsqglr6xhvyi2xlsmqd.v3sec.key` - Onion secret key
+* `systems3hwkxej5nzmo6kvwgx6sik2plqe4w3lsqglr6xhvyi2xlsmqd.v3pub.key` - Onion public key
+* `systems3hwkxej5nzmo6-v3.cert` - TLS private key (PEM encoded)
+* `systems3hwkxej5nzmo6-v3.pem` - TLS certificate (PEM encoded)
+
+You can then use the module to create EC2 instances and other resources to run EOTK and serve the onion site:
+
+```hcl
+module "eotk" {
+  source               = "sr2c/bc-eotk/aws"
+  namespace            = "eg"
+  name                 = "bc-eotk"
+  instance_count       = 1
+  configuration_bundle = "configuration.zip"
+}
+```
 
 
 
@@ -147,6 +227,7 @@ For additional context, refer to some of these links.
 
 - [Bypass Censorship Portal Documentation](https://bypass.censorship.guide/) - The documentation for the portal software that uses this module.
 - [terraform-aws-ec2-conf-log](https://gitlab.com/sr2c/terraform-aws-ec2-conf-log/) - The configuration and logging bucket setup that is used in this module.
+- [Enterprise Onion Toolkit](https://github.com/alecmuffett/eotk) - The GitHub repository for the Enterprise Onion Toolkit that is installed and configured on each EC2 instance.
 
 
 ## Help
