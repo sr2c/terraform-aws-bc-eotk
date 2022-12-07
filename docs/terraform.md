@@ -60,5 +60,9 @@
 
 ## Outputs
 
-No outputs.
+| Name | Description |
+|------|-------------|
+| <a name="output_instances"></a> [instances](#output\_instances) | An object mapping the availability zone in use to the instance ID for the created EC2 instance running EOTK in that<br>availability zone. |
+| <a name="output_log_bucket_arn"></a> [log\_bucket\_arn](#output\_log\_bucket\_arn) | The ARN of the log bucket created to hold the nginx access logs. |
+| <a name="output_log_bucket_id"></a> [log\_bucket\_id](#output\_log\_bucket\_id) | The ID of the log bucket created to hold the nginx access logs. |
 <!-- markdownlint-restore -->
