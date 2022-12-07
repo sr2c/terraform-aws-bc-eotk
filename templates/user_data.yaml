@@ -18,6 +18,7 @@ packages:
   - git
   - logrotate
   - unattended-upgrades
+  - unzip
 package_upgrade: true
 
 runcmd:
