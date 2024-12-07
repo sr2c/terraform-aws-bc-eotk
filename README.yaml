@@ -1,5 +1,6 @@
 ---
 name: terraform-aws-bc-eotk
+deprecated: true
 tags:
   - aws
   - terraform
